@@ -1,0 +1,36 @@
+<!doctype html><html><head><meta charset="utf-8"><title>ITM Universe - Login</title><link rel="stylesheet" href="style.css"></head><body>
+<div class="login-wrap"><div class="login-card card">
+  <h2>ITM Universe</h2><p class="small">Login as Student or Faculty</p>
+  <div style="display:flex;gap:8px;margin:12px 0"><button id="btnStudent" class="btn primary">Student</button><button id="btnFaculty" class="btn">Faculty</button></div>
+  <form id="loginForm">
+    <div class="form-row"><input id="user" placeholder="Roll number or username" required></div>
+    <div class="form-row" style="margin-top:8px"><input id="pass" placeholder="Password" type="password" required></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn primary">Login</button></div>
+  </form>
+  <div id="msg" class="small" style="margin-top:10px"></div>
+  <hr><div class="small">Demo student: <b>0905CS241183</b> / <b>1234567890</b> &nbsp; Faculty: <b>xyz</b> / <b>1234567890</b></div>
+</div></div>
+<script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  const sBtn = document.getElementById('btnStudent'), fBtn = document.getElementById('btnFaculty');
+  let mode='student';
+  sBtn.onclick=()=>{mode='student'; sBtn.classList.add('primary'); fBtn.classList.remove('primary');};
+  fBtn.onclick=()=>{mode='faculty'; fBtn.classList.add('primary'); sBtn.classList.remove('primary');};
+  document.getElementById('loginForm').onsubmit = (e)=>{
+    e.preventDefault();
+    const u = document.getElementById('user').value.trim(), p = document.getElementById('pass').value.trim();
+    const data = SMSV4.getData();
+    if(mode==='student'){
+      const s = (data.students||[]).find(x=>x.roll===u && x.password===p);
+      if(!s){ document.getElementById('msg').textContent='Invalid student credentials'; return; }
+      SMSV4.setCurrent({type:'student', id:s.roll}); location.href='student.html';
+    } else {
+      const f = (data.faculty||[]).find(x=>x.username===u && x.password===p);
+      if(!f){ document.getElementById('msg').textContent='Invalid faculty credentials'; return; }
+      SMSV4.setCurrent({type:'faculty', id:f.username}); location.href='faculty.html';
+    }
+  };
+});
+</script>
+</body></html>
