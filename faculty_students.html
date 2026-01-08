@@ -1,0 +1,29 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Faculty - Students</title><link rel="stylesheet" href="style.css"></head><body>
+<div class="app">
+  <aside class="sidebar"><div class="brand"><h1>ITM Universe</h1></div></aside>
+  <main class="content">
+    <div class="topbar"><div><h2>Students</h2><div class="small">Add / Edit / Delete students</div></div><div><button class="btn" id="logout">Logout</button></div></div>
+    <div class="card">
+      <h4>Add / Edit Student</h4>
+      <div class="form-row"><input id="st_name" placeholder="Name"><input id="st_roll" placeholder="Roll"></div>
+      <div class="form-row" style="margin-top:8px"><input id="st_pass" placeholder="Password"><select id="st_subjects" multiple style="height:120px"></select></div>
+      <div style="margin-top:8px"><button class="btn primary" id="saveStudent">Save Student</button> <button class="btn" id="clearForm">Clear</button></div>
+    </div>
+    <div class="card"><h4>Existing Students</h4><div id="studentsTable"></div></div>
+  </main>
+</div>
+<script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  const cur = SMSV4.getCurrent(); if(!cur || cur.type!=='faculty'){ location.href='index.html'; return; }
+  document.getElementById('logout').onclick = ()=>SMSV4.logout();
+  const subjSelect = document.getElementById('st_subjects');
+  function loadSubjects(){ subjSelect.innerHTML=''; (SMSV4.getData().subjects||[]).forEach(s=>{ const o = document.createElement('option'); o.value = s.id; o.textContent = s.title; subjSelect.appendChild(o); }); }
+  loadSubjects();
+  function renderStudents(){ const data = SMSV4.getData(); const tbl = document.getElementById('studentsTable'); tbl.innerHTML=''; const students = data.students||[]; const table = document.createElement('table'); table.className='table'; table.innerHTML = '<tr><th>Name</th><th>Roll</th><th>Subjects</th><th>Action</th></tr>'; students.forEach(s=>{ const tr = document.createElement('tr'); tr.innerHTML = '<td>'+s.name+'</td><td>'+s.roll+'</td><td>'+(s.subjects? s.subjects.map(id=> (SMSV4.findSubject(id)||{title:id}).title ).join('<br>') : '')+'</td><td><button class="btn edit" data-roll="'+s.roll+'">Edit</button> <button class="btn delete" data-roll="'+s.roll+'">Delete</button></td>'; table.appendChild(tr); }); tbl.appendChild(table); tbl.querySelectorAll('.edit').forEach(b=>b.onclick=()=>{ const roll=b.dataset.roll; const st = SMSV4.getData().students.find(x=>x.roll===roll); document.getElementById('st_name').value = st.name; document.getElementById('st_roll').value = st.roll; document.getElementById('st_pass').value = st.password; Array.from(subjSelect.options).forEach(opt=> opt.selected = (st.subjects||[]).includes(opt.value) ); }); tbl.querySelectorAll('.delete').forEach(b=>b.onclick=()=>{ if(!confirm('Delete '+b.dataset.roll+'?')) return; const d = SMSV4.getData(); d.students = d.students.filter(x=>x.roll!==b.dataset.roll); SMSV4.saveData(d); renderStudents(); }); }
+  renderStudents();
+  document.getElementById('clearForm').onclick = ()=>{ document.getElementById('st_name').value=''; document.getElementById('st_roll').value=''; document.getElementById('st_pass').value=''; Array.from(subjSelect.options).forEach(o=>o.selected=false); };
+  document.getElementById('saveStudent').onclick = ()=>{ const name = document.getElementById('st_name').value.trim(); const roll = document.getElementById('st_roll').value.trim(); const pass = document.getElementById('st_pass').value.trim(); if(!name||!roll||!pass){ alert('Fill name, roll and password'); return; } const selected = Array.from(subjSelect.selectedOptions).map(o=>o.value); const d = SMSV4.getData(); const exists = d.students.find(x=>x.roll===roll); if(exists){ exists.name = name; exists.password = pass; exists.subjects = selected; } else { if(d.students.find(x=>x.roll===roll)){ alert('Roll already exists'); return; } d.students.push({name, roll, password:pass, subjects:selected}); } SMSV4.saveData(d); alert('Saved'); renderStudents(); document.getElementById('clearForm').click(); };
+});
+</script>
+</body></html>

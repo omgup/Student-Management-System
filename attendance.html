@@ -1,0 +1,16 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Attendance</title><link rel="stylesheet" href="style.css"></head><body>
+<div class="app"><aside class="sidebar"><div class="brand"><h1>ITM Universe</h1></div></aside>
+<main class="content"><div class="topbar"><div><h2>Attendance</h2><div class="small">View your attendance</div></div><div><button class="btn" id="logout">Logout</button></div></div>
+<div class="card"><h4>Your Attendance</h4><div id="summary"></div><div id="records" style="max-height:400px;overflow:auto;margin-top:8px"></div></div></main></div>
+<script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  const cur = SMSV4.getCurrent(); if(!cur || cur.type!=='student'){ location.href='index.html'; return; }
+  document.getElementById('logout').onclick = ()=>SMSV4.logout();
+  const data = SMSV4.getData(); const student = data.students.find(s=>s.roll===cur.id); const att = data.attendance||{}; const dates = Object.keys(att).sort().reverse();
+  let total=0, present=0; const recDiv = document.getElementById('records'); recDiv.innerHTML='';
+  dates.forEach(d=>{ total++; const p = !!(att[d] && att[d][student.roll]); if(p) present++; const row = document.createElement('div'); row.innerHTML = '<strong>'+d+'</strong> — '+(p?'<span class="small">Present</span>':'<span class="small">Absent</span>'); recDiv.appendChild(row); });
+  document.getElementById('summary').innerHTML = '<p>Present: <b>'+present+'</b> / <b>'+total+'</b></p>';
+});
+</script>
+</body></html>

@@ -1,0 +1,32 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Faculty Dashboard</title><link rel="stylesheet" href="style.css"></head><body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><h1>ITM Universe</h1></div>
+    <div class="nav"><div style="padding:10px;background:rgba(255,255,255,0.03);border-radius:8px"><strong id="fname">Faculty</strong><div class="small" id="fuser"></div></div>
+      <a href="faculty.html" class="active">Dashboard</a>
+      <a href="faculty_students.html">Students</a>
+      <a href="faculty_subjects.html">Subjects</a>
+      <a href="faculty_attendance.html">Attendance</a>
+      <a href="marks.html">Marks</a>
+    </div>
+  </aside>
+  <main class="content">
+    <div class="topbar"><div><h2>Faculty Dashboard</h2><div class="small">Manage classes</div></div><div><button class="btn" id="logout">Logout</button></div></div>
+    <div class="grid"><div class="card stat"><h3>Total Students</h3><strong id="totStudents">0</strong></div><div class="card stat"><h3>Total Subjects</h3><strong id="totSubjects">0</strong></div><div class="card stat"><h3>Announcements</h3><strong id="totAnns">0</strong></div><div class="card stat"><h3>Marks</h3><strong id="totMarks">0</strong></div></div>
+    <div class="card"><h3>Quick Actions</h3><div style="display:flex;gap:8px"><a class="btn" href="faculty_students.html">Manage Students</a><a class="btn" href="faculty_subjects.html">Manage Subjects</a><a class="btn" href="faculty_attendance.html">Attendance</a></div></div>
+  </main>
+</div>
+<script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  const cur = SMSV4.getCurrent(); if(!cur || cur.type!=='faculty'){ location.href='index.html'; return; }
+  const data = SMSV4.getData(); const faculty = data.faculty.find(f=>f.username===cur.id);
+  document.getElementById('fname').textContent = faculty.name; document.getElementById('fuser').textContent = faculty.username;
+  document.getElementById('logout').onclick = ()=>SMSV4.logout();
+  document.getElementById('totStudents').textContent = (data.students||[]).length;
+  document.getElementById('totSubjects').textContent = (data.subjects||[]).length;
+  let ann=0, marks=0; const anns = data.announcements||{}; for(const k in anns) ann += anns[k].length; const m = data.marks||{}; for(const s in m) for(const r in m[s]) marks += m[s][r].length;
+  document.getElementById('totAnns').textContent = ann; document.getElementById('totMarks').textContent = marks;
+});
+</script>
+</body></html>

@@ -1,0 +1,24 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Faculty - Attendance</title><link rel="stylesheet" href="style.css"></head><body>
+<div class="app">
+  <aside class="sidebar"><div class="brand"><h1>ITM Universe</h1></div></aside>
+  <main class="content">
+    <div class="topbar"><div><h2>Attendance</h2><div class="small">Mark attendance</div></div><div><button class="btn" id="logout">Logout</button></div></div>
+    <div class="card"><label>Date</label><input type="date" id="attDate"><div id="studentsList" style="margin-top:8px;max-height:360px;overflow:auto;border:1px solid #eef6f1;padding:8px;border-radius:8px"></div><div style="margin-top:8px"><button class="btn primary" id="saveAtt">Save</button> <button class="btn" id="loadDates">Load Past</button></div></div>
+    <div class="card" id="pastDates" style="display:none"><h4>Past Dates</h4><div id="pastList"></div></div>
+  </main>
+</div>
+<script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  const cur = SMSV4.getCurrent(); if(!cur || cur.type!=='faculty'){ location.href='index.html'; return; }
+  document.getElementById('logout').onclick = ()=>SMSV4.logout();
+  const studentsList = document.getElementById('studentsList'); const attDate = document.getElementById('attDate');
+  function renderStudents(){ studentsList.innerHTML = ''; const students = SMSV4.getData().students || []; students.forEach(s=>{ const row = document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between'; row.style.padding='6px 4px'; row.innerHTML = '<div><b>'+s.name+'</b><div class="small">'+s.roll+'</div></div><div><input type="checkbox" data-roll="'+s.roll+'"></div>'; studentsList.appendChild(row); }); }
+  renderStudents(); attDate.valueAsDate = new Date();
+  function loadForDate(){ const d = attDate.value; if(!d) return; const rec = (SMSV4.getData().attendance||{})[d]||{}; document.querySelectorAll('#studentsList input[type=checkbox]').forEach(cb=> cb.checked = !!rec[cb.dataset.roll]); }
+  attDate.onchange = loadForDate;
+  document.getElementById('saveAtt').onclick = ()=>{ const d = attDate.value; if(!d) return alert('Select date'); const data = SMSV4.getData(); data.attendance = data.attendance || {}; data.attendance[d] = data.attendance[d] || {}; document.querySelectorAll('#studentsList input[type=checkbox]').forEach(cb=> data.attendance[d][cb.dataset.roll] = cb.checked); SMSV4.saveData(data); alert('Saved'); }
+  document.getElementById('loadDates').onclick = ()=>{ const att = SMSV4.getData().attendance || {}; const dates = Object.keys(att).sort().reverse(); const list = document.getElementById('pastList'); list.innerHTML=''; if(dates.length===0){ list.innerHTML = '<div class="small">No records</div>'; } else { dates.forEach(d=>{ const row=document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between'; row.style.padding='6px 4px'; row.innerHTML = '<div><strong>'+d+'</strong></div><div><button class="btn" data-date="'+d+'">Load</button> <button class="btn" data-date="'+d+'">Delete</button></div>'; list.appendChild(row); }); list.querySelectorAll('button').forEach(b=> b.onclick = ()=>{ const date = b.dataset.date; if(b.textContent==='Load'){ attDate.value = date; loadForDate(); } else { if(!confirm('Delete '+date+'?')) return; const d = SMSV4.getData(); delete d.attendance[date]; SMSV4.saveData(d); alert('Deleted'); b.parentElement.parentElement.remove(); } }); } document.getElementById('pastDates').style.display='block'; };
+});
+</script>
+</body></html>
