@@ -1,0 +1,18 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Profile</title><link rel="stylesheet" href="style.css"></head><body>
+<div style="padding:18px"><div class="card"><h3 id="title">Profile</h3>
+<form id="profileForm"><label>Name</label><input id="p_name"><label>Roll</label><input id="p_id" disabled><label>Phone</label><input id="p_phone"><label>Address</label><input id="p_address"><label>Subjects (comma separated)</label><input id="p_subjects"><div style="margin-top:8px"><button class="btn primary" id="saveBtn">Save</button> <button class="btn" id="backBtn">Back</button></div></form></div></div>
+<script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  const cur = SMSV4.getCurrent(); if(!cur){ location.href='index.html'; return; }
+  const params = new URLSearchParams(location.search); const rollParam = params.get('roll');
+  const data = SMSV4.getData();
+  let target=null, isStudent = cur.type==='student';
+  if(isStudent){ target = data.students.find(s=>s.roll===cur.id); document.getElementById('title').textContent='Your Profile'; } else { if(rollParam){ target = data.students.find(s=>s.roll===rollParam); document.getElementById('title').textContent='Edit '+rollParam; } else { location.href='faculty_students.html'; return; } }
+  if(!target){ alert('Not found'); location.href='index.html'; return; }
+  document.getElementById('p_name').value = target.name||''; document.getElementById('p_id').value = target.roll||''; document.getElementById('p_phone').value = target.phone||''; document.getElementById('p_address').value = target.address||''; document.getElementById('p_subjects').value = (target.subjects||[]).join(', ');
+  document.getElementById('backBtn').onclick = ()=>{ if(isStudent) location.href='student.html'; else location.href='faculty_students.html'; };
+  document.getElementById('saveBtn').onclick = (e)=>{ e.preventDefault(); target.name = document.getElementById('p_name').value.trim(); target.phone = document.getElementById('p_phone').value.trim(); target.address = document.getElementById('p_address').value.trim(); target.subjects = document.getElementById('p_subjects').value.split(',').map(x=>x.trim()).filter(Boolean); SMSV4.saveData(data); alert('Saved'); if(isStudent) location.href='student.html'; else location.href='faculty_students.html'; };
+});
+</script>
+</body></html>

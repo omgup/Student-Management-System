@@ -1,0 +1,36 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Student Dashboard</title><link rel="stylesheet" href="style.css"></head><body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><h1>ITM Universe</h1></div>
+    <div class="nav"><div style="padding:10px;background:rgba(255,255,255,0.03);border-radius:8px"><strong id="sname">Student</strong><div class="small" id="sroll"></div></div>
+      <a href="student.html" class="active">Dashboard</a>
+      <a href="student_subject.html">Subjects</a>
+      <a href="profile.html">Profile</a>
+      <a href="attendance.html">Attendance</a>
+      <a href="marks.html">Marks</a>
+    </div>
+  </aside>
+  <main class="content">
+    <div class="topbar"><div><h2>Student Dashboard</h2><div class="small">Welcome</div></div><div><button class="btn" id="logout">Logout</button></div></div>
+    <div class="grid"><div class="card stat"><h3>Total Subjects</h3><strong id="totSubs">0</strong></div><div class="card stat"><h3>Announcements</h3><strong id="annCount">0</strong></div><div class="card stat"><h3>Midterms</h3><strong id="midCount">0</strong></div></div>
+    <div class="card"><h3>Your Subjects</h3><div id="subjectList" class="subject-tabs"></div></div>
+  </main>
+</div>
+<script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  const cur = SMSV4.getCurrent(); if(!cur || cur.type!=='student'){ location.href='index.html'; return; }
+  const data = SMSV4.getData(); const student = data.students.find(s=>s.roll===cur.id);
+  if(!student){ alert('Student not found'); SMSV4.logout(); return; }
+  document.getElementById('sname').textContent = student.name; document.getElementById('sroll').textContent = student.roll;
+  document.getElementById('logout').onclick = ()=>SMSV4.logout();
+  const subs = student.subjects || [];
+  document.getElementById('totSubs').textContent = subs.length;
+  let ann=0, mid=0;
+  subs.forEach(ref=>{ const s = SMSV4.findSubject(ref); if(s && (SMSV4.getData().announcements||{})[s.id]) ann += (SMSV4.getData().announcements[s.id]||[]).length; if(s && SMSV4.getData().marks && SMSV4.getData().marks[s.id] && SMSV4.getData().marks[s.id][student.roll]) mid += SMSV4.getData().marks[s.id][student.roll].length; });
+  document.getElementById('annCount').textContent = ann; document.getElementById('midCount').textContent = mid;
+  const list = document.getElementById('subjectList'); list.innerHTML='';
+  subs.forEach(ref=>{ const s = SMSV4.findSubject(ref) || {id:ref,title:ref,intro:''}; const card = document.createElement('div'); card.className='subject-card'; card.innerHTML = '<strong>'+s.title+'</strong><div class="small">'+(s.intro||'')+'</div><div style="margin-top:8px"><a class="btn" href="student_subject.html?sub='+encodeURIComponent(s.id || s.title)+'">Open Subject</a></div>'; list.appendChild(card); });
+});
+</script>
+</body></html>

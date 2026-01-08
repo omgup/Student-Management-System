@@ -1,0 +1,28 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Subject - Student</title><link rel="stylesheet" href="style.css"></head><body>
+<div class="app">
+  <aside class="sidebar"><div class="brand"><h1>ITM Universe</h1></div></aside>
+  <main class="content">
+    <div class="topbar"><div><h2 id="subTitle">Subject</h2><div class="small" id="subId"></div></div><div><button class="btn" id="logout">Logout</button></div></div>
+    <div id="intro" class="card"></div>
+    <div class="card"><h3>Announcements</h3><div id="annList"></div></div>
+    <div class="card"><h3>Midterm Marks</h3><div id="marksList"></div></div>
+  </main>
+</div>
+<script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  const cur = SMSV4.getCurrent(); if(!cur || cur.type!=='student'){ location.href='index.html'; return; }
+  const params = new URLSearchParams(location.search); const subParam = params.get('sub');
+  const data = SMSV4.getData(); const student = data.students.find(s=>s.roll===cur.id);
+  document.getElementById('logout').onclick = ()=>SMSV4.logout();
+  let subject = null;
+  if(subParam) subject = SMSV4.findSubject(subParam);
+  if(!subject && student && student.subjects && student.subjects.length) subject = SMSV4.findSubject(student.subjects[0]);
+  if(!subject){ document.getElementById('subTitle').textContent='Unknown'; return; }
+  document.getElementById('subTitle').textContent = subject.title; document.getElementById('subId').textContent = subject.id;
+  document.getElementById('intro').innerHTML = '<p>'+subject.intro+'</p>';
+  const anns = (SMSV4.getData().announcements||{})[subject.id] || []; const annList = document.getElementById('annList'); annList.innerHTML=''; if(anns.length===0) annList.innerHTML='<div class="small">No announcements</div>'; else anns.slice().reverse().forEach(a=>{ const d=document.createElement('div'); d.className='card'; d.innerHTML = '<strong>'+a.title+'</strong><div class="small">'+a.date+'</div><div>'+a.text+'</div>'; annList.appendChild(d); });
+  const marks = (SMSV4.getData().marks && SMSV4.getData().marks[subject.id] && SMSV4.getData().marks[subject.id][student.roll]) || []; const marksList = document.getElementById('marksList'); marksList.innerHTML=''; if(marks.length===0) marksList.innerHTML='<div class="small">No marks yet</div>'; else marks.forEach(m=>{ const d=document.createElement('div'); d.className='card'; d.innerHTML = '<strong>'+m.label+'</strong> — <b>'+m.value+'</b><div class="small">'+m.date+'</div>'; marksList.appendChild(d); });
+});
+</script>
+</body></html>

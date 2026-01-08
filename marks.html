@@ -1,0 +1,22 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Marks</title><link rel="stylesheet" href="style.css"></head><body>
+<div class="app"><aside class="sidebar"><div class="brand"><h1>ITM Universe</h1></div></aside>
+<main class="content">
+  <div class="topbar"><div><h2>Marks</h2><div class="small">Add/view midterm marks</div></div><div><button class="btn" id="logout">Logout</button></div></div>
+  <div id="facultyArea" style="display:none" class="card"><h4>Enter Marks</h4><div><select id="markSubject"></select></div><div id="studentsMarks" style="margin-top:8px"></div></div>
+  <div id="studentArea" style="display:none" class="card"><h4>Your Marks</h4><div id="myMarks"></div></div>
+</main></div>
+<script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  const cur = SMSV4.getCurrent(); if(!cur){ location.href='index.html'; return; }
+  document.getElementById('logout').onclick = ()=>SMSV4.logout();
+  if(cur.type==='faculty'){
+    document.getElementById('facultyArea').style.display='block';
+    const sel = document.getElementById('markSubject'); sel.innerHTML = '<option value="">Select subject</option>'; SMSV4.getData().subjects.forEach(s=>{ const o=document.createElement('option'); o.value=s.id; o.textContent=s.title; sel.appendChild(o); });
+    sel.onchange = ()=>{ const sid = sel.value; const cont = document.getElementById('studentsMarks'); cont.innerHTML=''; if(!sid) return; SMSV4.getData().students.forEach(st=>{ const row = document.createElement('div'); row.style.display='flex'; row.style.alignItems='center'; row.style.gap='8px'; row.style.padding='6px 0'; row.innerHTML = '<div style="flex:1"><b>'+st.name+'</b><div class="small">'+st.roll+'</div></div><input placeholder="Label" class="lbl"> <input placeholder="Value" class="val" type="number" min="0" max="100"> <button class="btn add">Add</button>'; cont.appendChild(row); row.querySelector('.add').onclick = ()=>{ const label = row.querySelector('.lbl').value.trim(); const val = row.querySelector('.val').value.trim(); if(!label||!val) return alert('Enter label and value'); const d = SMSV4.getData(); d.marks = d.marks||{}; d.marks[sid] = d.marks[sid]||{}; d.marks[sid][st.roll] = d.marks[sid][st.roll]||[]; d.marks[sid][st.roll].push({label:label,value:parseFloat(val),date:new Date().toLocaleString(),by:cur.id}); SMSV4.saveData(d); alert('Added'); }; }); };
+  } else {
+    document.getElementById('studentArea').style.display='block'; const data = SMSV4.getData(); const student = data.students.find(s=>s.roll===cur.id); const my = document.getElementById('myMarks'); my.innerHTML=''; (student.subjects||[]).forEach(ref=>{ const s = SMSV4.findSubject(ref); const arr = (data.marks && data.marks[s.id] && data.marks[s.id][student.roll]) || []; const card = document.createElement('div'); card.className='card'; card.innerHTML = '<strong>'+ (s? s.title : ref) +'</strong>'; if(arr.length===0) card.innerHTML += '<div class="small">No marks</div>'; else arr.forEach(m=> card.innerHTML += '<div class="small">'+m.label+' : '+m.value+' <span class="small">('+m.date+')</span></div>'); my.appendChild(card); });
+  }
+});
+</script>
+</body></html>

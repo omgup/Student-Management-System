@@ -1,0 +1,18 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Faculty - Subjects</title><link rel="stylesheet" href="style.css"></head><body>
+<div class="app"><aside class="sidebar"><div class="brand"><h1>ITM Universe</h1></div></aside>
+<main class="content">
+  <div class="topbar"><div><h2>Subjects</h2><div class="small">Post announcements</div></div><div><button class="btn" id="logout">Logout</button></div></div>
+  <div class="card"><div class="form-row"><input id="annTitle" placeholder="Title"><input id="annText" placeholder="Message"></div><div style="margin-top:8px"><select id="annSubject"></select> <button class="btn primary" id="postAnn">Post Announcement</button></div></div>
+  <div class="card"><h4>Subject List</h4><div id="subList"></div></div>
+</main></div>
+<script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  const cur = SMSV4.getCurrent(); if(!cur || cur.type!=='faculty'){ location.href='index.html'; return; }
+  document.getElementById('logout').onclick = ()=>SMSV4.logout();
+  function loadSubjects(){ const sel = document.getElementById('annSubject'); sel.innerHTML=''; SMSV4.getData().subjects.forEach(s=>{ const o=document.createElement('option'); o.value=s.id; o.textContent=s.title; sel.appendChild(o); }); const list = document.getElementById('subList'); list.innerHTML=''; SMSV4.getData().subjects.forEach(s=>{ const d=document.createElement('div'); d.className='card'; d.innerHTML = '<strong>'+s.title+'</strong><div class="small">'+s.intro+'</div>'; list.appendChild(d); }); }
+  loadSubjects();
+  document.getElementById('postAnn').onclick = ()=>{ const tit=document.getElementById('annTitle').value.trim(); const txt=document.getElementById('annText').value.trim(); const sid=document.getElementById('annSubject').value; if(!txt||!sid) return alert('Select subject and enter message'); const d = SMSV4.getData(); d.announcements = d.announcements||{}; d.announcements[sid] = d.announcements[sid]||[]; d.announcements[sid].push({title: tit||'Announcement', text: txt, date: new Date().toLocaleString(), by: cur.id}); SMSV4.saveData(d); alert('Posted'); document.getElementById('annTitle').value=''; document.getElementById('annText').value=''; }
+});
+</script>
+</body></html>
